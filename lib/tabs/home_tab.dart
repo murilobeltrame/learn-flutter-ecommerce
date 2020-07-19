@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class HomeTab extends StatelessWidget {
   @override
@@ -39,6 +41,19 @@ class HomeTab extends StatelessWidget {
       ),
     );
 
+    Widget _buildGrid(List<DocumentSnapshot> documents) => SliverStaggeredGrid.count(
+      crossAxisCount: 2,
+      mainAxisSpacing: 1.0,
+      crossAxisSpacing: 1.0,
+      staggeredTiles: documents.map((document) => StaggeredTile.count(document.data['x'], document.data['y'])).toList(),
+      children: documents.map((document) => FadeInImage.memoryNetwork(
+          placeholder: kTransparentImage,
+          image: document.data['image'],
+          fit: BoxFit.cover,
+        ),
+      ).toList(),
+    );
+    
     return Stack(
       children: <Widget>[
         _buildBodyBackground(),
@@ -48,17 +63,12 @@ class HomeTab extends StatelessWidget {
             FutureBuilder<QuerySnapshot>(
               future: Firestore.instance.collection('home').orderBy('position').getDocuments(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return _buildProgressIndicator();
-                } else {
-                  return SliverToBoxAdapter(
-                    child: Container(),
-                  );
-                }
+                if (!snapshot.hasData) return _buildProgressIndicator();
+                else return _buildGrid(snapshot.data.documents);
               },
-            )
+            ),
           ],
-        )
+        ),
       ],
     );
   }
