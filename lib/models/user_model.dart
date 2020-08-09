@@ -20,12 +20,29 @@ class UserModel extends Model {
     await Firestore.instance.collection('users').document(user.uid).setData(userData);
   }
 
+  Future<Null> _loadUser() async {
+    if (user == null) user = await _auth.currentUser();
+    if (user != null) {
+      if (userData['name'] == null) {
+        var docUser = await Firestore.instance.collection('users').document(user.uid).get();
+        userData = docUser.data;
+      }
+    }
+    notifyListeners();
+  }
+
+  @override
+  void addListener(VoidCallback listener) {
+    super.addListener(listener);
+    _loadUser();
+  }
+
   void SignUp({
-      @required Map<String, dynamic> userData,
-      @required String password,
-      @required VoidCallback onSuccess,
-      @required VoidCallback onFailure
-    }) {
+    @required Map<String, dynamic> userData,
+    @required String password,
+    @required VoidCallback onSuccess,
+    @required VoidCallback onFailure
+  }) {
     _notifyLoading(true);
     _auth.createUserWithEmailAndPassword(email: userData['email'], password: password)
         .then((result) async {
@@ -40,11 +57,25 @@ class UserModel extends Model {
         });
   }
 
-  void SignIn() async {
-    isLoading = true;
-    notifyListeners();
+  void SignIn({
+    @required String email,
+    @required String password,
+    @required VoidCallback onSuccess,
+    @required VoidCallback onFailure
+  }) async {
+    _notifyLoading(true);
 
-    await Future.delayed(Duration(seconds: 3));
+    _auth.signInWithEmailAndPassword(email: email, password: password)
+      .then((result) async {
+        user = result.user;
+        await _loadUser();
+        onSuccess();
+        _notifyLoading(false);
+      })
+      .catchError((e){
+        onFailure();
+        _notifyLoading(false);
+      });
 
     isLoading = false;
     notifyListeners();
