@@ -31,6 +31,8 @@ class UserModel extends Model {
     notifyListeners();
   }
 
+  static UserModel of(BuildContext context) => ScopedModel.of<UserModel>(context);
+
   @override
   void addListener(VoidCallback listener) {
     super.addListener(listener);
@@ -43,6 +45,7 @@ class UserModel extends Model {
     @required VoidCallback onSuccess,
     @required VoidCallback onFailure
   }) {
+    print('[DEBUG] Sign up user with ${userData['email']}');
     _notifyLoading(true);
     _auth.createUserWithEmailAndPassword(email: userData['email'], password: password)
         .then((result) async {
@@ -52,6 +55,8 @@ class UserModel extends Model {
           _notifyLoading(false);
         })
         .catchError((e){
+          print('[DEBUG] Error signing up user');
+          print(e);
           onFailure();
           _notifyLoading(false);
         });
@@ -63,6 +68,7 @@ class UserModel extends Model {
     @required VoidCallback onSuccess,
     @required VoidCallback onFailure
   }) async {
+    print('[DEBUG] Sign in user with email $email');
     _notifyLoading(true);
 
     _auth.signInWithEmailAndPassword(email: email, password: password)
@@ -73,6 +79,8 @@ class UserModel extends Model {
         _notifyLoading(false);
       })
       .catchError((e){
+        print('[DEBUG] Error signing in user');
+        print(e);
         onFailure();
         _notifyLoading(false);
       });
@@ -82,14 +90,16 @@ class UserModel extends Model {
   }
 
   void SignOut() async {
+    print('[DEBUG] Sign out current user');
     await _auth.signOut();
     userData = null;
     user = null;
     notifyListeners();
   }
 
-  void RecoverPass(){
-
+  void RecoverPass(String email){
+    print('[DEBUG] Recovering password for $email');
+    _auth.sendPasswordResetEmail(email: email);
   }
 
   bool isLoggedIn(){

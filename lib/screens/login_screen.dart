@@ -80,7 +80,22 @@ class LoginScreen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: FlatButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      if(_emailController.text.isEmpty) {
+                        _scaffoldKey.currentState.showSnackBar(SnackBar(
+                          content: Text('Insira seu email.'),
+                          backgroundColor: Colors.red,
+                          duration: Duration(seconds: 3),
+                        ));
+                      } else {
+                        model.RecoverPass(_emailController.text);
+                        _scaffoldKey.currentState.showSnackBar(SnackBar(
+                          content: Text('Confira seu email.'),
+                          backgroundColor: Theme.of(context).primaryColor,
+                          duration: Duration(seconds: 3),
+                        ));
+                      }
+                    },
                     padding: EdgeInsets.zero,
                     child: Text(
                       'Esqueci minha senha',
